@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Angel, pretty please? 💖</title>
+  <style>
+    :root{
+      --bg: #0b0f17;
+      --card: #131a26;
+      --text: #e8f0ff;
+      --muted: #9fb3d1;
+      --accent: #ff70a6;
+      --accent2: #7cddff;
+      --yes: #4ade80;
+      --no: #f87171;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 800px at 10% 10%, #172136, transparent),
+                  radial-gradient(1200px 800px at 90% 20%, #1a2440, transparent),
+                  var(--bg);
+      color:var(--text);
+      overflow:hidden;
+    }
+    .screen{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; opacity:0; pointer-events:none; transition:opacity .5s ease}
+    .screen.active{opacity:1; pointer-events:auto}
+
+    .card{
+      width:min(920px, 94vw); max-width:920px; background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,.5);
+      backdrop-filter: blur(8px);
+    }
+    h1{font-size: clamp(28px, 4vw, 48px); line-height:1.05; margin:0 0 14px;}
+    p.lead{font-size: clamp(16px,2.4vw,20px); color:var(--muted); margin:0 0 22px}
+    .btns{display:flex; gap:14px; flex-wrap:wrap}
+    button{
+      border:none; cursor:pointer; border-radius:16px; padding:14px 18px; font-weight:700; font-size:18px;
+      transition: transform .06s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .yes{background:linear-gradient(180deg, #45f39a, #28c76f); color:#06240f; box-shadow: 0 6px 16px rgba(72, 255, 149, .25)}
+    .yes:active{transform: translateY(1px) scale(.98)}
+    .no{background:linear-gradient(180deg, #ff9aa2, #f87171); color:#2a0707; position:relative}
+
+    .hint{font-size:14px; color:var(--muted); margin-top:8px}
+    .tiny{font-size:12px; opacity:.8}
+
+    /* Floating background hearts */
+    .floaty{position:absolute; pointer-events:none; user-select:none; opacity:.8}
+
+    /* Second screen */
+    .msg{font-size: clamp(20px, 3vw, 28px); line-height:1.4; margin:8px 0 18px}
+    .chips{display:flex; gap:8px; flex-wrap:wrap; margin:10px 0 18px}
+    .chip{background:#1a2333; color:#cfe3ff; border:1px solid rgba(255,255,255,.08); padding:8px 12px; border-radius:999px; font-size:14px}
+
+    .grid{display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:14px; margin-top:12px}
+    .panel{background:var(--card); border:1px solid rgba(255,255,255,.08); border-radius:20px; padding:16px; min-height:120px}
+    .panel h3{margin:0 0 8px; font-size:18px}
+    .panel p{margin:0 0 10px; color:var(--muted); font-size:14px}
+    .panel .actions{display:flex; gap:10px; flex-wrap:wrap}
+
+    .pill{padding:8px 12px; border-radius:999px; background:#1f2a40; color:#d7e7ff; border:1px solid rgba(255,255,255,.08); font-size:14px}
+
+    .footer{margin-top:14px; font-size:13px; color:#9fb3d1}
+
+    /* Drifting yes buttons */
+    .drift{
+      position:fixed; z-index:20; animation: drift 12s linear infinite; padding:10px 14px; border-radius:999px;
+      background: linear-gradient(180deg, #45f39a, #28c76f); color:#06240f; font-weight:800; border:none; cursor:pointer;
+      box-shadow:0 8px 20px rgba(0,0,0,.25);
+    }
+    @keyframes drift{
+      from{transform: translate3d(var(--xStart,0), var(--yStart,0),0) rotate(0)}
+      to{transform: translate3d(var(--xEnd,100vw), var(--yEnd,0),0) rotate(360deg)}
+    }
+
+    /* Modal */
+    .modal{position:fixed; inset:0; background:rgba(0,0,0,.5); display:none; align-items:center; justify-content:center; z-index:30}
+    .modal.show{display:flex}
+    .modal .sheet{background:var(--card); border:1px solid rgba(255,255,255,.1); border-radius:20px; width:min(520px, 96vw); padding:18px}
+
+    /* Tooltip for NO */
+    .tooltip{position:fixed; background:#111827; color:#e5e7eb; font-size:12px; padding:6px 8px; border-radius:8px; border:1px solid #374151; pointer-events:none; opacity:0; transition:opacity .2s}
+
+    canvas#confetti{position:fixed; inset:0; pointer-events:none; z-index:25}
+  </style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+  <div id="tooltip" class="tooltip">Nice try 😜</div>
+
+  <!-- Screen 1: Ask for forgiveness -->
+  <section id="s1" class="screen active">
+    <div class="card">
+      <h1>Angel… will you please forgive me? 🥺💖</h1>
+      <p class="lead">I messed up. You're my world — bestie and universe in one. So… can we hit the big green button and make up?</p>
+      <div class="btns">
+        <button class="yes" id="yesBtn">YES, I forgive you 🌟</button>
+        <button class="no" id="noBtn">NO 🙅‍♀</button>
+      </div>
+      <div class="hint">Psst… the red button is shy and will run away from your cursor 🏃‍♀💨</div>
+      <div class="tiny">(Made just for you, Angel 🌈)</div>
+    </div>
+  </section>
+
+  <!-- Screen 2: After YES -->
+  <section id="s2" class="screen">
+    <div class="card">
+      <h1>YAY! Angel said YES! 🎉</h1>
+      <div id="typed" class="msg"></div>
+      <div class="chips" id="chips"></div>
+
+      <div class="grid">
+        <div class="panel">
+          <h3>💌 A tiny promise</h3>
+          <p>I’ll be kinder, funnier, and 100× more huggable. If I ever mess up, I owe you instant ice cream. Deal?</p>
+          <div class="actions">
+            <button class="pill" id="hugBtn">Send virtual hug 🤗</button>
+            <button class="pill" id="confettiBtn">More confetti 🎊</button>
+            <button class="pill" id="spawnBtn">Spawn hearts 💗</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>🎟 Angel’s VIP Coupon</h3>
+          <p>Redeemable anytime, anywhere.</p>
+          <ul class="tiny">
+            <li>1× Free Ice Cream</li>
+            <li>∞ Hugs on demand</li>
+            <li>Priority jokes & memes</li>
+          </ul>
+          <div class="actions">
+            <button class="pill" id="couponBtn">Open coupon</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>🎮 Mini‑game: Pop the Hearts</h3>
+          <p>Tap the floating hearts before they fade. Score high, win bragging rights.</p>
+          <div class="actions">
+            <button class="pill" id="gameBtn">Start game 💥</button>
+            <span class="pill" id="score">Score: 0</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>🪄 More YES everywhere</h3>
+          <p>Click to release runaway YES buttons zooming across the screen.</p>
+          <div class="actions">
+            <button class="pill" id="yesRainBtn">Release the YES rain ✅</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">Made with 💖 just for Angel — your chaotic, loyal, forever friend.</div>
+    </div>
+  </section>
+
+  <!-- Modal for coupon -->
+  <div id="modal" class="modal" aria-hidden="true">
+    <div class="sheet">
+      <h2 style="margin:0 0 6px">Angel’s VIP Coupon 🎟</h2>
+      <p class="tiny" style="margin:0 0 12px;color:var(--muted)">Show this to claim treats & hugs. No expiry. No questions. Only smiles.</p>
+      <div style="display:grid; gap:8px">
+        <div style="background:#0e1624;border:1px dashed #274064;border-radius:16px;padding:14px">
+          <div style="font-size:22px;font-weight:800">FREE ICE CREAM 🍦 + INFINITE HUGS 🤗</div>
+          <div style="color:#a9c3e6">Code: <b>ANGEL-FOREVER-OK</b></div>
+        </div>
+        <button class="yes" id="closeModal">Redeemed ✅</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="boop" preload="auto">
+    <source src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA..." type="audio/mpeg" />
+  </audio>
+
+  <script>
+    // ===== Utilities =====
+    const qs = (s,p=document)=>p.querySelector(s);
+    const qsa = (s,p=document)=>[...p.querySelectorAll(s)];
+
+    const confettiCanvas = qs('#confetti');
+    const ctx = confettiCanvas.getContext('2d');
+    let W = confettiCanvas.width = innerWidth;
+    let H = confettiCanvas.height = innerHeight;
+    addEventListener('resize', ()=>{
+      W = confettiCanvas.width = innerWidth;
+      H = confettiCanvas.height = innerHeight;
+    });
+
+    function rand(min,max){return Math.random()*(max-min)+min}
+
+    // ===== Screen 1: No button runs away =====
+    const noBtn = qs('#noBtn');
+    const yesBtn = qs('#yesBtn');
+    const tooltip = qs('#tooltip');
+
+    function moveNoAway(px, py){
+      const rect = noBtn.getBoundingClientRect();
+      const cx = rect.left + rect.width/2;
+      const cy = rect.top + rect.height/2;
+      const dist = Math.hypot(cx - px, cy - py);
+      if(dist < 160){
+        const nx = Math.min(W-rect.width-10, Math.max(10, rand(0, W - rect.width)));
+        const ny = Math.min(H-rect.height-10, Math.max(10, rand(0, H - rect.height)));
+        noBtn.style.position = 'fixed';
+        noBtn.style.left = nx + 'px';
+        noBtn.style.top = ny + 'px';
+      }
+    }
+
+    document.addEventListener('mousemove', (e)=> moveNoAway(e.clientX, e.clientY));
+
+    noBtn.addEventListener('mouseenter', (e)=> moveNoAway(e.clientX, e.clientY));
+    noBtn.addEventListener('click', (e)=>{
+      tooltip.style.left = (e.clientX+12)+ 'px';
+      tooltip.style.top = (e.clientY+12)+ 'px';
+      tooltip.style.opacity = 1;
+      setTimeout(()=> tooltip.style.opacity = 0, 800);
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    // ===== Transition to Screen 2 =====
+    yesBtn.addEventListener('click', ()=>{
+      qs('#s1').classList.remove('active');
+      qs('#s2').classList.add('active');
+      fireConfetti(220);
+      typeMessage("Angel, thank you for forgiving me. I’m really sorry. You’re my favorite human — my best friend, my safe space, my whole goofy galaxy. From now on: more kindness, more memes, more ice cream, and no more silly mistakes. 💖");
+      loadChips();
+    });
+
+    // ===== Typewriter effect =====
+    function typeMessage(text){
+      const el = qs('#typed');
+      el.textContent = '';
+      let i=0; const speed = 22;
+      const t = setInterval(()=>{
+        el.textContent += text[i++] || '';
+        if(i > text.length) clearInterval(t);
+      }, speed);
+    }
+
+    // ===== Compliment chips =====
+    const compliments = [
+      'You’re my favorite notification 💌',
+      'Certified cutest human 🏅',
+      'Chaos buddy forever 🔥',
+      'Laughter machine 😂',
+      'Unlimited kindness dispenser 💖',
+      'Meme queen 👑',
+      'Main character energy ✨',
+      'Bestie to infinity ♾',
+      'Smiles look better on you 😁',
+      '10/10 would befriend again ✅'
+    ];
+    function loadChips(){
+      const wrap = qs('#chips');
+      wrap.innerHTML = '';
+      compliments.sort(()=>Math.random()-.5).forEach(c=>{
+        const span = document.createElement('span');
+        span.className = 'chip';
+        span.textContent = c;
+        span.addEventListener('click', ()=>{
+          fireConfetti(60);
+        });
+        wrap.appendChild(span);
+      });
+    }
+
+    // ===== Confetti =====
+    let confetti = [];
+    function makePiece(){
+      const hue = Math.floor(rand(0,360));
+      return {x: rand(0,W), y: -10, vx: rand(-1,1), vy: rand(2,5), size: rand(4,8), rot: rand(0,Math.PI), vr: rand(-0.1,0.1), hue};
+    }
+    function fireConfetti(amount=120){
+      for(let i=0;i<amount;i++) confetti.push(makePiece());
+    }
+    function tick(){
+      ctx.clearRect(0,0,W,H);
+      confetti.forEach(p=>{
+        p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += 0.02;
+      });
+      confetti = confetti.filter(p=> p.y < H+20);
+
+      confetti.forEach(p=>{
+        ctx.save();
+        ctx.translate(p.x,p.y); ctx.rotate(p.rot);
+        ctx.fillStyle = hsl(${p.hue} 90% 60%);
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
+        ctx.restore();
+      });
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    // ===== Hearts everywhere =====
+    function spawnHeart(x, y){
+      const el = document.createElement('div');
+      el.className = 'floaty';
+      el.textContent = ['💗','💖','💓','💞','💕'][Math.floor(rand(0,5))];
+      el.style.left = x + 'px';
+      el.style.top = y + 'px';
+      el.style.fontSize = rand(18,42) + 'px';
+      document.body.appendChild(el);
+      const dx = rand(-60,60), dy = rand(-140,-60), dur = rand(900,1600);
+      const start = performance.now();
+      (function anim(t0){
+        const p = Math.min(1, (t0-start)/dur);
+        el.style.transform = translate(${dx*p}px, ${dy*p}px);
+        el.style.opacity = String(1-p);
+        if(p<1) requestAnimationFrame(anim); else el.remove();
+      })(start);
+    }
+    document.addEventListener('click', (e)=> spawnHeart(e.clientX, e.clientY));
+    qs('#spawnBtn').addEventListener('click', ()=>{
+      for(let i=0;i<60;i++) setTimeout(()=> spawnHeart(rand(0,W), rand(0,H)), i*25);
+    });
+
+    // ===== Virtual hug =====
+    qs('#hugBtn').addEventListener('click', ()=>{
+      fireConfetti(120);
+      for(let i=0;i<20;i++) setTimeout(()=> spawnHeart(rand(W*0.3,W*0.7), rand(H*0.3,H*0.7)), i*60);
+      const a = qs('#boop'); a && a.play && a.play().catch(()=>{});
+    });
+
+    // Extra confetti
+    qs('#confettiBtn').addEventListener('click', ()=> fireConfetti(160));
+
+    // ===== Coupon modal =====
+    const modal = qs('#modal');
+    qs('#couponBtn').addEventListener('click', ()=>{ modal.classList.add('show'); });
+    qs('#closeModal').addEventListener('click', ()=>{ modal.classList.remove('show'); });
+    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('show'); });
+
+    // ===== Game: Pop the Hearts =====
+    let gameActive=false, score=0;
+    function makeGameHeart(){
+      if(!gameActive) return;
+      const d = document.createElement('div');
+      d.className = 'floaty'; d.textContent = '💗';
+      d.style.left = rand(40, W-40) + 'px';
+      d.style.top = (H+20) + 'px';
+      d.style.fontSize = rand(24,40) + 'px';
+      document.body.appendChild(d);
+      const rise = rand(140,240);
+      const dur = rand(1800,2600);
+      let popped=false;
+      d.onclick = ()=>{ if(popped) return; popped=true; score++; qs('#score').textContent = 'Score: ' + score; fireConfetti(24); d.remove(); };
+      const start = performance.now();
+      (function anim(t0){
+        const p = (t0-start)/dur; if(p>=1){ d.remove(); return; }
+        d.style.transform = translate(0, ${-rise*p}px); d.style.opacity = String(1-p);
+        if(gameActive) requestAnimationFrame(anim); else d.remove();
+      })(start);
+      setTimeout(makeGameHeart, rand(260,520));
+    }
+    qs('#gameBtn').addEventListener('click', ()=>{
+      if(gameActive){ gameActive=false; qs('#gameBtn').textContent='Start game 💥'; return; }
+      score=0; qs('#score').textContent='Score: 0'; gameActive=true; qs('#gameBtn').textContent='Stop game ⏹'; makeGameHeart();
+    });
+
+    // ===== YES rain =====
+    qs('#yesRainBtn').addEventListener('click', ()=>{
+      for(let i=0;i<10;i++) setTimeout(()=> spawnYes(), i*200);
+    });
+    function spawnYes(){
+      const b = document.createElement('button');
+      b.className = 'drift'; b.textContent = 'YES';
+      b.style.left = '-100px'; b.style.top = '-100px';
+      const yS = rand(0,H*0.8); const yE = rand(0,H*0.8);
+      b.style.setProperty('--xStart', -${rand(40,160)}px);
+      b.style.setProperty('--yStart', ${yS}px);
+      b.style.setProperty('--xEnd', ${W + rand(40,160)}px);
+      b.style.setProperty('--yEnd', ${yE - yS}px);
+      b.addEventListener('click', ()=>{ fireConfetti(40); spawnHeart(rand(0,W), rand(0,H)); });
+      document.body.appendChild(b);
+      setTimeout(()=> b.remove(), 12000);
+    }
+
+    // ===== Accessibility niceties =====
+    noBtn.setAttribute('aria-hidden','true');
+  </script>
+</body>
+</html>
