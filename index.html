@@ -137,7 +137,7 @@
         </div>
 
         <div class="panel">
-          <h3>🎮 Mini‑game: Pop the Hearts</h3>
+          <h3>🎮 Mini-game: Pop the Hearts</h3>
           <p>Tap the floating hearts before they fade. Score high, win bragging rights.</p>
           <div class="actions">
             <button class="pill" id="gameBtn">Start game 💥</button>
@@ -290,7 +290,7 @@
       confetti.forEach(p=>{
         ctx.save();
         ctx.translate(p.x,p.y); ctx.rotate(p.rot);
-        ctx.fillStyle = hsl(${p.hue} 90% 60%);
+        ctx.fillStyle = `hsl(${p.hue} 90% 60%)`;
         ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size*0.6);
         ctx.restore();
       });
@@ -311,7 +311,7 @@
       const start = performance.now();
       (function anim(t0){
         const p = Math.min(1, (t0-start)/dur);
-        el.style.transform = translate(${dx*p}px, ${dy*p}px);
+        el.style.transform = `translate(${dx*p}px, ${dy*p}px)`;
         el.style.opacity = String(1-p);
         if(p<1) requestAnimationFrame(anim); else el.remove();
       })(start);
@@ -332,58 +332,4 @@
     qs('#confettiBtn').addEventListener('click', ()=> fireConfetti(160));
 
     // ===== Coupon modal =====
-    const modal = qs('#modal');
-    qs('#couponBtn').addEventListener('click', ()=>{ modal.classList.add('show'); });
-    qs('#closeModal').addEventListener('click', ()=>{ modal.classList.remove('show'); });
-    modal.addEventListener('click', (e)=>{ if(e.target===modal) modal.classList.remove('show'); });
-
-    // ===== Game: Pop the Hearts =====
-    let gameActive=false, score=0;
-    function makeGameHeart(){
-      if(!gameActive) return;
-      const d = document.createElement('div');
-      d.className = 'floaty'; d.textContent = '💗';
-      d.style.left = rand(40, W-40) + 'px';
-      d.style.top = (H+20) + 'px';
-      d.style.fontSize = rand(24,40) + 'px';
-      document.body.appendChild(d);
-      const rise = rand(140,240);
-      const dur = rand(1800,2600);
-      let popped=false;
-      d.onclick = ()=>{ if(popped) return; popped=true; score++; qs('#score').textContent = 'Score: ' + score; fireConfetti(24); d.remove(); };
-      const start = performance.now();
-      (function anim(t0){
-        const p = (t0-start)/dur; if(p>=1){ d.remove(); return; }
-        d.style.transform = translate(0, ${-rise*p}px); d.style.opacity = String(1-p);
-        if(gameActive) requestAnimationFrame(anim); else d.remove();
-      })(start);
-      setTimeout(makeGameHeart, rand(260,520));
-    }
-    qs('#gameBtn').addEventListener('click', ()=>{
-      if(gameActive){ gameActive=false; qs('#gameBtn').textContent='Start game 💥'; return; }
-      score=0; qs('#score').textContent='Score: 0'; gameActive=true; qs('#gameBtn').textContent='Stop game ⏹'; makeGameHeart();
-    });
-
-    // ===== YES rain =====
-    qs('#yesRainBtn').addEventListener('click', ()=>{
-      for(let i=0;i<10;i++) setTimeout(()=> spawnYes(), i*200);
-    });
-    function spawnYes(){
-      const b = document.createElement('button');
-      b.className = 'drift'; b.textContent = 'YES';
-      b.style.left = '-100px'; b.style.top = '-100px';
-      const yS = rand(0,H*0.8); const yE = rand(0,H*0.8);
-      b.style.setProperty('--xStart', -${rand(40,160)}px);
-      b.style.setProperty('--yStart', ${yS}px);
-      b.style.setProperty('--xEnd', ${W + rand(40,160)}px);
-      b.style.setProperty('--yEnd', ${yE - yS}px);
-      b.addEventListener('click', ()=>{ fireConfetti(40); spawnHeart(rand(0,W), rand(0,H)); });
-      document.body.appendChild(b);
-      setTimeout(()=> b.remove(), 12000);
-    }
-
-    // ===== Accessibility niceties =====
-    noBtn.setAttribute('aria-hidden','true');
-  </script>
-</body>
-</html>
+    const modal = qs
