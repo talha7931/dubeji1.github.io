@@ -332,4 +332,60 @@
     qs('#confettiBtn').addEventListener('click', ()=> fireConfetti(160));
 
     // ===== Coupon modal =====
-    const modal = qs
+    // ===== Coupon modal =====
+const modal = qs('#modal');
+qs('#couponBtn').addEventListener('click', () => {
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+});
+qs('#closeModal').addEventListener('click', () => {
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
+});
+
+// ===== Game: pop the hearts =====
+let score = 0;
+qs('#gameBtn').addEventListener('click', () => {
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const x = rand(50, W - 50);
+      const y = rand(50, H - 50);
+      const heart = document.createElement('div');
+      heart.className = 'floaty';
+      heart.textContent = '💖';
+      heart.style.left = x + 'px';
+      heart.style.top = y + 'px';
+      heart.style.fontSize = '28px';
+      document.body.appendChild(heart);
+      heart.addEventListener('click', () => {
+        score++;
+        qs('#score').textContent = `Score: ${score}`;
+        fireConfetti(20);
+        heart.remove();
+      });
+      setTimeout(() => heart.remove(), 3000);
+    }, i * 400);
+  }
+});
+
+// ===== Drifting YES rain =====
+qs('#yesRainBtn').addEventListener('click', () => {
+  for (let i = 0; i < 12; i++) {
+    const b = document.createElement('button');
+    b.className = 'drift';
+    b.textContent = 'YES 💚';
+    b.style.setProperty('--xStart', `-${rand(40,160)}px`);
+    b.style.setProperty('--xEnd', `${rand(40,160)}px`);
+    b.style.setProperty('--yStart', `${rand(0, H)}px`);
+    b.style.setProperty('--yEnd', `${rand(0, H)}px`);
+    b.style.left = rand(0, W) + 'px';
+    b.style.top = rand(0, H) + 'px';
+    document.body.appendChild(b);
+    b.addEventListener('click', () => {
+      fireConfetti(80);
+      spawnHeart(rand(0, W), rand(0, H));
+    });
+    setTimeout(() => b.remove(), 12000);
+  }
+});
+
